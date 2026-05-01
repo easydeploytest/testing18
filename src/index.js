@@ -264,27 +264,24 @@ mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
             <div class="step">
               <div class="step-num">2</div>
               <div class="step-body">
-                <div class="step-title">Fetch the platform files</div>
+                <div class="step-title">Clone this repo and copy your code in</div>
                 <div class="step-desc">
-                  Run from your project root. These files wire up CI and tell the platform your app name and port.
-                  <pre>mkdir -p .github/workflows
-curl -sL https://raw.githubusercontent.com/easydeploytest/${APP}/main/.github/workflows/deploy-dev.yml > .github/workflows/deploy-dev.yml
-curl -sL https://raw.githubusercontent.com/easydeploytest/${APP}/main/.github/workflows/promote-prod.yml > .github/workflows/promote-prod.yml
-curl -sL https://raw.githubusercontent.com/easydeploytest/${APP}/main/app.yaml > app.yaml
-curl -sL https://raw.githubusercontent.com/easydeploytest/${APP}/main/RUNBOOK.md > RUNBOOK.md</pre>
-                  Then open <code>app.yaml</code> and set <code>port</code> to your app's port.
+                  This repo is already wired up — CI, ArgoCD, Infisical, <code>app.yaml</code>. Just bring your source files.
+                  <pre>git clone ${REPO_URL}
+cd ${APP}
+# copy your src/ and Dockerfile from your existing project
+# do NOT copy app.yaml — it's already configured</pre>
                 </div>
               </div>
             </div>
             <div class="step">
               <div class="step-num">3</div>
               <div class="step-body">
-                <div class="step-title">Set the remote and push</div>
+                <div class="step-title">Push</div>
                 <div class="step-desc">
-                  <pre>git remote set-url origin ${REPO_URL} 2>/dev/null || git remote add origin ${REPO_URL}
-git add -A
+                  <pre>git add -A
 git commit -m "feat: initial deploy"
-git push --force origin main</pre>
+git push origin main</pre>
                   Watch progress at <a href="${ARGOCD_APP}" target="_blank" style="color:var(--primary)">ArgoCD</a> or the <a href="${PORTAL_URL}" target="_blank" style="color:var(--primary)">portal</a>.
                 </div>
               </div>
@@ -318,9 +315,8 @@ cd ${APP}</pre>
             <div class="step">
               <div class="step-num">3</div>
               <div class="step-body">
-                <div class="step-title">Set your port and push</div>
+                <div class="step-title">Push</div>
                 <div class="step-desc">
-                  Open <code>app.yaml</code> and set <code>port</code> to match your app. Then:
                   <pre>git add -A
 git commit -m "feat: replace template with my app"
 git push</pre>
@@ -572,22 +568,22 @@ func main() {
     <section>
       <div class="section-title">Deploy to production</div>
       <div class="card">
-        <div class="info">Prod deploys are triggered by GitHub Releases, not pushes. This prevents accidental production deployments.</div>
+        <div class="info">Prod deploys are triggered by a version tag push, not pushes to main. This prevents accidental production deployments.</div>
         <div class="steps">
           <div class="step">
             <div class="step-num">1</div>
             <div class="step-body">
-              <div class="step-title">Merge to <code>main</code></div>
-              <div class="step-desc">All prod deploys start from a commit that is already running on dev. Verify the dev URL before promoting.</div>
+              <div class="step-title">Verify dev first</div>
+              <div class="step-desc">All prod deploys re-tag the image already running on dev. Verify <a href="${DEV_URL}" target="_blank" style="color:var(--primary)">dev</a> before promoting.</div>
             </div>
           </div>
           <div class="step">
             <div class="step-num">2</div>
             <div class="step-body">
-              <div class="step-title">Create a GitHub Release</div>
+              <div class="step-title">Push a version tag</div>
               <div class="step-desc">
-                Tag: <code>v1.0.0</code> (semver). The platform re-tags the dev image with this version and ArgoCD syncs the prod namespace.
-                <pre>gh release create v1.0.0 --title "v1.0.0" --notes "First production release"</pre>
+                Semver tag (e.g. <code>v1.0.0</code>). The platform re-tags the dev image with this version and ArgoCD syncs the prod namespace.
+                <pre>git tag v1.0.0 && git push origin v1.0.0</pre>
               </div>
             </div>
           </div>
